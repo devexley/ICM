@@ -8,6 +8,12 @@ A small document-sharing app. You'll be extending it with features that customer
 
 **Branch:** Agent and customer work for this exercise lives on `customer-test`. Clone or check out that branch (not `main`) to run the implemented features and tests described below.
 
+**Tests on `customer-test`:** With the stack running (`docker compose up -d` from this directory), run:
+
+```
+docker compose exec app php tests/test.php
+```
+
 Requires Docker (with Compose). That's it — PHP, SQLite, and everything else ship inside the container.
 
 ```
@@ -17,12 +23,6 @@ docker compose up
 Open http://localhost:8000. The first run builds the image (~30 seconds); subsequent runs start instantly.
 
 Each `docker compose up` re-seeds `db.sqlite` from scratch, so you always start with a known state. Stop with `Ctrl+C`.
-
-To run the tests:
-
-```
-docker compose exec app php tests/test.php
-```
 
 You edit files on your host machine in your normal editor — the container has them mounted, so changes show up immediately on browser refresh.
 
