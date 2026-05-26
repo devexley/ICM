@@ -44,6 +44,20 @@ test('seeded share link resolves to the seeded document', function () {
     assert_true($row['title'] === 'Welcome Packet', 'unexpected title: ' . var_export($row['title'], true));
 });
 
+test('document is hidden before published_at', function () {
+    $publicId = generate_public_id('Scheduled Future');
+    $stmt = db()->prepare('
+        INSERT INTO documents (title, body, created_by, public_id, published_at)
+        VALUES (?, ?, 1, ?, datetime(\'now\', \'+1 day\'))
+    ');
+    $stmt->execute(['Scheduled Future', 'Body', $publicId]);
+    $fetch = db()->prepare('SELECT * FROM documents WHERE public_id = ?');
+    $fetch->execute([$publicId]);
+    $doc = $fetch->fetch();
+    assert_true($doc !== false, 'expected inserted document');
+    assert_true(!document_is_visible($doc), 'future published_at should not be visible');
+});
+
 test('title prefix search finds matching documents', function () {
     $stmt = db()->prepare('SELECT COUNT(*) AS n FROM documents WHERE title LIKE ?');
     $stmt->execute(['Welcome%']);

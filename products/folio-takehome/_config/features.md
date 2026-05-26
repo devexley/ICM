@@ -4,9 +4,9 @@ Track decisions here during `02_design`; link from stage outputs.
 
 ## 1. Scheduled publishing
 
-- [ ] Visibility rule before `published_at`
-- [ ] User-facing copy for "not yet available"
-- [ ] Audit events to log
+- [x] Recipients blocked until `published_at` (view shows "Not yet available")
+- [x] Optional `publish_at` on admin create; blank = immediate
+- [x] `audit_log` action `schedule` when publish time is in the future
 
 ## 2. Human-readable document IDs
 

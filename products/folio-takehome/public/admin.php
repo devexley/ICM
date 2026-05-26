@@ -13,15 +13,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($title === '' || $body === '') {
         $error = 'Title and body are required.';
     } else {
+        try {
+            $publishedAt = normalize_publish_at((string) ($_POST['publish_at'] ?? ''));
+        } catch (InvalidArgumentException $e) {
+            $error = $e->getMessage();
+        }
+    }
+
+    if ($error === null && $title !== '' && $body !== '') {
         $stmt = db()->prepare('
-            INSERT INTO documents (title, body, created_by)
-            VALUES (?, ?, ?)
+            INSERT INTO documents (title, body, created_by, published_at)
+            VALUES (?, ?, ?, ?)
         ');
-        $stmt->execute([$title, $body, $staff['id']]);
+        $stmt->execute([$title, $body, $staff['id'], $publishedAt]);
         $docId = (int) db()->lastInsertId();
         $publicId = assign_public_id($docId, $title);
 
-        audit_log('create', 'document', $docId, ['title' => $title, 'public_id' => $publicId]);
+        audit_log('create', 'document', $docId, [
+            'title' => $title,
+            'public_id' => $publicId,
+            'published_at' => $publishedAt,
+        ]);
+        if (strtotime($publishedAt) > time()) {
+            audit_log('schedule', 'document', $docId, ['published_at' => $publishedAt]);
+        }
 
         header('Location: /admin.php?created=' . urlencode($publicId));
         exit;
@@ -73,6 +88,11 @@ render_header('Admin', $staff);
         <div class="form-field">
             <label for="body">Body</label>
             <textarea id="body" name="body" required></textarea>
+        </div>
+        <div class="form-field">
+            <label for="publish_at">Publish at (optional)</label>
+            <input type="datetime-local" id="publish_at" name="publish_at">
+            <p class="field-hint">Leave blank to publish immediately. Future times stay hidden from recipients until then.</p>
         </div>
         <button type="submit" class="btn">Create document</button>
     </form>

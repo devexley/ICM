@@ -18,8 +18,8 @@ $pdo->exec("
 ");
 
 $stmt = $pdo->prepare('
-    INSERT INTO documents (title, body, created_by)
-    VALUES (?, ?, 1)
+    INSERT INTO documents (title, body, created_by, published_at)
+    VALUES (?, ?, 1, datetime(\'now\'))
 ');
 $stmt->execute([
     'Welcome Packet',

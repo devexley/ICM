@@ -75,6 +75,27 @@ function generate_public_id(string $title): string {
     throw new RuntimeException('Could not allocate unique public_id');
 }
 
+function document_is_visible(array $doc): bool {
+    if (empty($doc['published_at'])) {
+        return true;
+    }
+    $stmt = db()->prepare("SELECT datetime(?) <= datetime('now')");
+    $stmt->execute([$doc['published_at']]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function normalize_publish_at(string $raw): string {
+    $raw = trim($raw);
+    if ($raw === '') {
+        return (new DateTime())->format('Y-m-d H:i:s');
+    }
+    $ts = strtotime($raw);
+    if ($ts === false) {
+        throw new InvalidArgumentException('Invalid publish date/time');
+    }
+    return date('Y-m-d H:i:s', $ts);
+}
+
 function assign_public_id(int $documentId, string $title): string {
     $publicId = generate_public_id($title);
     $stmt = db()->prepare('UPDATE documents SET public_id = ? WHERE id = ?');
