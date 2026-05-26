@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/lib/bootstrap.php';
+require __DIR__ . '/lib/migrate.php';
 
 $dbPath = __DIR__ . '/db.sqlite';
 if (file_exists($dbPath)) {
@@ -9,6 +10,7 @@ if (file_exists($dbPath)) {
 
 $pdo = db();
 $pdo->exec(file_get_contents(__DIR__ . '/schema.sql'));
+run_migrations($pdo);
 
 $pdo->exec("
     INSERT INTO staff (email, name) VALUES
@@ -24,6 +26,7 @@ $stmt->execute([
     "Welcome to Folio!\n\nThis is the body of your welcome packet.",
 ]);
 $docId = (int) $pdo->lastInsertId();
+$publicId = assign_public_id($docId, 'Welcome Packet');
 
 $token = random_token();
 $stmt = $pdo->prepare('
@@ -34,4 +37,5 @@ $stmt->execute([$docId, $token, 'recipient@example.com']);
 
 echo "Seeded db.sqlite.\n";
 echo "Admin:        http://localhost:8000/admin.php\n";
+echo "Public ID:    {$publicId}\n";
 echo "Sample share: http://localhost:8000/view.php?token={$token}\n";

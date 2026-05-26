@@ -19,10 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ');
         $stmt->execute([$title, $body, $staff['id']]);
         $docId = (int) db()->lastInsertId();
+        $publicId = assign_public_id($docId, $title);
 
-        audit_log('create', 'document', $docId, ['title' => $title]);
+        audit_log('create', 'document', $docId, ['title' => $title, 'public_id' => $publicId]);
 
-        header('Location: /admin.php?created=' . $docId);
+        header('Location: /admin.php?created=' . urlencode($publicId));
         exit;
     }
 }
@@ -41,7 +42,7 @@ render_header('Admin', $staff);
 <p class="page-subtitle">Create documents and generate share links for recipients.</p>
 
 <?php if (!empty($_GET['created'])): ?>
-    <div class="banner banner-success">Document #<?= (int) $_GET['created'] ?> created.</div>
+    <div class="banner banner-success">Document <code><?= h((string) $_GET['created']) ?></code> created.</div>
 <?php endif ?>
 
 <?php if ($error): ?>
@@ -71,7 +72,7 @@ render_header('Admin', $staff);
         <table class="data">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Public ID</th>
                     <th>Title</th>
                     <th>Creator</th>
                     <th>Created</th>
@@ -81,7 +82,7 @@ render_header('Admin', $staff);
             <tbody>
                 <?php foreach ($docs as $d): ?>
                     <tr>
-                        <td class="id">#<?= (int) $d['id'] ?></td>
+                        <td class="id"><code><?= h($d['public_id'] ?? ('#' . (int) $d['id'])) ?></code></td>
                         <td><?= h($d['title']) ?></td>
                         <td><?= h($d['creator_name']) ?></td>
                         <td><?= h($d['created_at']) ?></td>

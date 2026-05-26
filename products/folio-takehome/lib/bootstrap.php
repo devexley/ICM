@@ -43,6 +43,45 @@ function random_token(int $bytes = 16): string {
     return bin2hex(random_bytes($bytes));
 }
 
+function slugify_title(string $title): string {
+    $slug = strtolower(trim($title));
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+    $slug = trim($slug, '-');
+    if ($slug === '') {
+        $slug = 'document';
+    }
+    return substr($slug, 0, 32);
+}
+
+function random_public_suffix(int $length = 4): string {
+    $alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    $out = '';
+    for ($i = 0; $i < $length; $i++) {
+        $out .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+    }
+    return $out;
+}
+
+function generate_public_id(string $title): string {
+    $base = slugify_title($title);
+    for ($attempt = 0; $attempt < 20; $attempt++) {
+        $candidate = $base . '-' . random_public_suffix();
+        $stmt = db()->prepare('SELECT 1 FROM documents WHERE public_id = ?');
+        $stmt->execute([$candidate]);
+        if (!$stmt->fetch()) {
+            return $candidate;
+        }
+    }
+    throw new RuntimeException('Could not allocate unique public_id');
+}
+
+function assign_public_id(int $documentId, string $title): string {
+    $publicId = generate_public_id($title);
+    $stmt = db()->prepare('UPDATE documents SET public_id = ? WHERE id = ?');
+    $stmt->execute([$publicId, $documentId]);
+    return $publicId;
+}
+
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }
