@@ -70,6 +70,8 @@ render_header('Admin', $staff);
 <h1 class="page-title">Admin</h1>
 <p class="page-subtitle">Create documents and generate share links for recipients.</p>
 
+<div class="banner banner-warn">Customer agent running from customer-test branch</div>
+
 <?php if (!empty($_GET['created'])): ?>
     <div class="banner banner-success">Document <code><?= h((string) $_GET['created']) ?></code> created.</div>
 <?php endif ?>
