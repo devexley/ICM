@@ -20,6 +20,10 @@ ICM/
 └── scripts/validate_icm.py
 ```
 
+## Portability
+
+Clone anywhere; see **[PORTABILITY.md](PORTABILITY.md)** for dependencies and fresh-clone steps.
+
 ## Validate
 
 ```bash
