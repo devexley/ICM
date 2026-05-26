@@ -26,6 +26,17 @@ ICM/
 python3 scripts/validate_icm.py
 ```
 
+## Hub activity log (local)
+
+Run commands with pre/post ICM validation and append to `logs/hub.log`:
+
+```bash
+python3 scripts/icm_run.py validate
+python3 scripts/icm_run.py exec --product folio-takehome -- docker compose exec app php tests/test.php
+python3 scripts/icm_run.py git --product folio-takehome -- add -A
+python3 scripts/icm_run.py git --product folio-takehome -- commit -m "message"
+```
+
 ## Work on Folio
 
 1. Open hub → read `CONTEXT.md` → `products/folio-takehome/`.
