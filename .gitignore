@@ -19,6 +19,7 @@ products/folio-takehome/*.sqlite
 .env
 .env.*
 !.env.example
+integration/local/
 
 # Python
 __pycache__/
