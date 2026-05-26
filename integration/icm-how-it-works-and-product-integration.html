@@ -1,0 +1,187 @@
+<!doctype html><html><head><meta charset="utf-8"><title>icm-how-it-works-and-product-integration</title><style>body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5;margin:40px;max-width:920px;} code,pre{background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;} pre{padding:12px;overflow:auto;} img{max-width:100%;} table{border-collapse:collapse;} th,td{border:1px solid #d0d7de;padding:6px;}</style></head><body><h1>ICM How-It-Works + Product Integration (Folio)</h1>
+<p><strong>Repository:</strong> <a href="https://github.com/devexley/ICM">devexley/ICM</a><br />
+<strong>Scope:</strong> Explain how ICM operates in this project and how <code>products/folio-takehome/</code> is integrated.<br />
+<strong>Last updated:</strong> 2026-05-26</p>
+<hr />
+<h2>1) What “ICM” means in this repo</h2>
+<p>This repository is organized as an <strong>ICM portfolio hub</strong>. The operating principle is:</p>
+<ul>
+<li>Work is guided by <strong>contracts</strong> (Markdown files).</li>
+<li>An orchestrating agent should <strong>load only the relevant context</strong> for the current step.</li>
+<li>Each step is represented by a <strong>stage</strong> with its own <code>CONTEXT.md</code>.</li>
+<li>The stage contract defines:</li>
+<li><code>## Inputs</code> (what the agent should rely on)</li>
+<li><code>## Process</code> (what to do)</li>
+<li><code>## Outputs</code> (what artifacts must be produced)</li>
+<li>Humans review each stage’s outputs before proceeding.</li>
+</ul>
+<p>Concretely: the hub + product + stage contracts describe <em>how work should be performed</em>, while <code>scripts/validate_icm.py</code> enforces that the structure stays consistent.</p>
+<hr />
+<h2>2) Hub structure (where routing rules live)</h2>
+<p>Top-level “hub” identity and routing are defined in:</p>
+<ul>
+<li><code>CLAUDE.md</code> (Layer 0, identity)</li>
+<li><code>CONTEXT.md</code> (Layer 1, routing to products/stages)</li>
+<li><code>_config/conventions.md</code> (Layer 3, org-wide engineering norms)</li>
+<li><code>integration/CONTEXT.md</code> (Layer 2, used when wiring multiple products)</li>
+<li><code>scripts/validate_icm.py</code> (structure enforcement)</li>
+</ul>
+<h3>Hub routing rule</h3>
+<p>The hub <code>CONTEXT.md</code> defines a mapping from user intent to what to load, and a strict constraint:</p>
+<ul>
+<li>Do <strong>not</strong> load all products at once.</li>
+<li>Pick a product, then pick one stage.</li>
+<li>Stage files do not live at hub root; they live under <code>products/&lt;name&gt;/stages/</code>.</li>
+</ul>
+<hr />
+<h2>3) Product structure (where stage contracts live)</h2>
+<p>Each product lives under <code>products/&lt;name&gt;/</code>. This repo currently has:</p>
+<ul>
+<li><code>products/folio-takehome/</code></li>
+</ul>
+<p>Inside a product:</p>
+<ul>
+<li><code>CONTEXT.md</code>: describes the product’s stage list and feature scope</li>
+<li><code>CLAUDE.md</code>: product identity and how to run it</li>
+<li><code>_config/conventions.md</code>: product-specific rules</li>
+<li><code>stages/NN_name/CONTEXT.md</code>: stage-by-stage contracts</li>
+</ul>
+<h3>How <code>folio-takehome</code> defines stages</h3>
+<p><code>products/folio-takehome/CONTEXT.md</code> defines four stages:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Folder</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td><code>stages/01_discovery/</code></td>
+<td>Read codebase + capture ambiguities</td>
+</tr>
+<tr>
+<td>02</td>
+<td><code>stages/02_design/</code></td>
+<td>Migrations, ID format, search semantics, tradeoffs</td>
+</tr>
+<tr>
+<td>03</td>
+<td><code>stages/03_implement/</code></td>
+<td>Code + tests in the product tree</td>
+</tr>
+<tr>
+<td>04</td>
+<td><code>stages/04_verify/</code></td>
+<td>Docker + tests, fresh-clone checklist</td>
+</tr>
+</tbody>
+</table>
+<p>Each stage contract contains <code>## Inputs</code>, <code>## Process</code>, and <code>## Outputs</code>.</p>
+<hr />
+<h2>4) Stage contracts (what each stage is responsible for)</h2>
+<p>Here is the operational intent of each stage contract (as written in the product stage <code>CONTEXT.md</code> files):</p>
+<h3>Stage 01: Discovery</h3>
+<ul>
+<li>Inputs: hub conventions, product conventions, <code>features.md</code>, app README, and selected reads of the codebase.</li>
+<li>Process: map admin/share/recipient flows; list ambiguities; propose feature order/scope.</li>
+<li>Outputs (written to <code>stages/01_discovery/output/</code>):</li>
+<li><code>discovery.md</code></li>
+<li><code>scope.md</code></li>
+<li>Audit intent: no code changes outside <code>output/</code>.</li>
+</ul>
+<h3>Stage 02: Design</h3>
+<ul>
+<li>Inputs: Stage 01 outputs + conventions.</li>
+<li>Process: resolve feature decisions; design migration approach and URL/share-token strategy; outline tests.</li>
+<li>Outputs (written to <code>stages/02_design/output/</code>):</li>
+<li><code>design.md</code></li>
+<li><code>migrations.md</code></li>
+<li><code>test-plan.md</code></li>
+<li>Audit intent: no application code changed yet.</li>
+</ul>
+<h3>Stage 03: Implement</h3>
+<ul>
+<li>Inputs: Stage 02 outputs + product conventions + the app codebase tree.</li>
+<li>Process:</li>
+<li>add migration file(s) (do not edit canonical <code>schema.sql</code> for new feature columns)</li>
+<li>implement features and add tests</li>
+<li>log implementation notes</li>
+<li>Outputs (written to <code>stages/03_implement/output/</code>):</li>
+<li><code>implementation.md</code></li>
+<li>Audit intent: implementation matches approved design or deviations are documented; tests exist for shipped features.</li>
+</ul>
+<h3>Stage 04: Verify</h3>
+<ul>
+<li>Inputs: Stage 03 implementation output + Stage 02 design test plan + app tree.</li>
+<li>Process:</li>
+<li>run Docker and confirm the app serves</li>
+<li>run the test command</li>
+<li>do smoke checks and record results</li>
+<li>Outputs (written to <code>stages/04_verify/output/</code>):</li>
+<li><code>verify.md</code></li>
+<li><code>video-outline.md</code></li>
+<li>Audit intent: verify report includes documented pass/fail and rationale for skipped features (if any).</li>
+</ul>
+<hr />
+<h2>5) How the product is “integrated” into ICM (in this repo)</h2>
+<p>In this repo, integration is primarily <strong>contract wiring</strong> (stage dependencies and verify commands), not runtime API coupling.</p>
+<h3>A) Wiring by stage dependency paths</h3>
+<p>Stages depend on prior stage outputs via the <code>Inputs</code> tables:</p>
+<ul>
+<li>Stage 02 <code>Inputs</code> references:</li>
+<li><code>../01_discovery/output/</code></li>
+<li>Stage 03 <code>Inputs</code> references:</li>
+<li><code>../02_design/output/</code></li>
+<li>Stage 04 <code>Inputs</code> references:</li>
+<li><code>../03_implement/output/implementation.md</code></li>
+<li><code>../02_design/output/test-plan.md</code></li>
+</ul>
+<p>This path-based structure means:</p>
+<ul>
+<li>The agent should not “wing it” from memory.</li>
+<li>Each phase’s artifacts become explicit inputs for the next phase.</li>
+</ul>
+<h3>B) Wiring by product routing</h3>
+<p>The hub <code>CONTEXT.md</code> routes “Work on Folio” to:</p>
+<ul>
+<li><code>products/folio-takehome/CONTEXT.md</code></li>
+</ul>
+<p>From there, the product defines which stage contracts are valid and in what order.</p>
+<h3>C) Wiring by runtime verification commands</h3>
+<p>The product’s “verify” stage contract uses the actual Folio test/verification workflow:</p>
+<ul>
+<li><code>docker compose up</code> (app serves)</li>
+<li><code>docker compose exec app php tests/test.php</code> (test correctness)</li>
+</ul>
+<p>So “integration” here means: the stage contract is grounded in what the product can actually execute and validate.</p>
+<hr />
+<h2>6) What enforces the structure</h2>
+<p>Two scripts ensure the ICM structure stays valid:</p>
+<ol>
+<li><code>scripts/validate_icm.py</code></li>
+<li>validates hub + product + stage contracts exist and contain required sections</li>
+<li>validates stage naming/order</li>
+<li>for <code>folio-takehome</code>, it enforces the migration policy:<ul>
+<li>feature columns must be added via <code>migrations/*.sql</code></li>
+<li><code>schema.sql</code> must not define <code>public_id</code> / <code>published_at</code></li>
+<li>seed/migration behavior is consistent</li>
+</ul>
+</li>
+<li><code>scripts/icm_run.py</code></li>
+<li>runs commands with pre/post validation</li>
+<li>logs activity to <code>logs/hub.log</code></li>
+</ol>
+<p>These are “integration guardrails” that keep the repo aligned with the stage-contract workflow.</p>
+<hr />
+<h2>7) Where your customer-agent portal idea fits</h2>
+<p>You proposed adding a customer-facing, email-authenticated agent that:</p>
+<ul>
+<li>creates <code>customer/{email-slug}</code> branches from <code>features-dev</code></li>
+<li>runs agent work that follows the ICM stage contracts</li>
+<li>runs verify/tests before reporting success</li>
+<li>keeps <code>main</code>/<code>features-dev</code> protected</li>
+</ul>
+<p>That portal orchestration logic would live under <code>integration/</code> as it is cross-cutting system behavior layered on top of the existing product (<code>folio-takehome</code>) and its stage contracts.</p></body></html>
