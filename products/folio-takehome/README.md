@@ -68,6 +68,19 @@ Make these calls yourself and explain your reasoning in your video. We care abou
 - Document creation, scheduling changes, and share actions should be logged to `audit_log` (pattern is in `lib/bootstrap.php`).
 - The `docker compose up` flow should still work from a fresh clone for anyone reviewing your branch.
 
+## Schema migrations (implemented on this branch)
+
+This branch satisfies the migration requirement above as follows:
+
+| Concern | Where it lives |
+|--------|----------------|
+| Baseline tables (unchanged) | `schema.sql` — staff, documents, shares, audit_log only |
+| Migration runner | `lib/migrate.php` — applies `migrations/*.sql`, tracks `schema_migrations` |
+| Feature columns | `migrations/001_add_public_id.sql`, `migrations/002_add_published_at.sql` |
+| When migrations run | `seed.php` after `schema.sql` (every `docker compose up` and `tests/test.php`) |
+
+**Policy:** Do not add `public_id`, `published_at`, or other feature columns to `schema.sql`. Add a new numbered file under `migrations/` instead. See `migrations/README.md` for detail.
+
 ## Deliverables
 
 1. A branch with your changes and a commit log that tells the story of your work

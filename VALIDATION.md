@@ -22,6 +22,9 @@
 - [ ] App source present (`public/`, `lib/`, `docker-compose.yml`)
 - [ ] Engineering stages: `01_discovery` … `04_verify`
 - [ ] `SOURCE.md` documents upstream repo
+- [ ] **Migrations:** `schema.sql` has no `public_id` / `published_at`; columns only in `migrations/*.sql`
+- [ ] `seed.php` runs `schema.sql` then `run_migrations()`
+- [ ] README § “Schema migrations (implemented on this branch)” documents approach
 
 ## Automated
 

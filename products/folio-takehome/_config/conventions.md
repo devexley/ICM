@@ -9,8 +9,9 @@ Overrides hub defaults only where noted; hub rules still apply.
 
 ## Schema
 
-- **Do not** edit `schema.sql` for feature work.
-- Add **migration file(s)** you create; document approach in `02_design/output/`.
+- **Do not** edit `schema.sql` for feature work (baseline tables only).
+- Add **migration file(s)** under `migrations/`; applied by `lib/migrate.php` from `seed.php`.
+- Canonical docs: `migrations/README.md` and README § “Schema migrations (implemented on this branch)”.
 - `docker compose up` re-seeds DB from scratch (known state each run).
 
 ## Audit

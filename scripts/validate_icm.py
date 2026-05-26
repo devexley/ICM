@@ -81,6 +81,63 @@ def validate_stages(stages_root: Path, label_prefix: str = "") -> None:
             fail(f"{rel}/{stage.name}: Inputs should reference prior stage paths")
 
 
+def validate_folio_migrations(product_path: Path) -> None:
+    """README requirement: feature schema via migrations/, not schema.sql."""
+    prefix = "folio migrations"
+    schema_path = product_path / "schema.sql"
+    if not schema_path.is_file():
+        fail(f"{prefix}: missing schema.sql")
+        return
+    schema_text = schema_path.read_text(encoding="utf-8").lower()
+    for col in ("public_id", "published_at"):
+        if col in schema_text:
+            fail(f"{prefix}: schema.sql must not define {col} (use migrations/)")
+        else:
+            ok(f"{prefix}: schema.sql omits {col}")
+
+    migrate_py = product_path / "lib" / "migrate.php"
+    check_exists(migrate_py, f"{prefix}: lib/migrate.php")
+    seed = product_path / "seed.php"
+    if seed.is_file():
+        seed_text = seed.read_text(encoding="utf-8")
+        if "run_migrations" not in seed_text:
+            fail(f"{prefix}: seed.php must call run_migrations()")
+        else:
+            ok(f"{prefix}: seed.php calls run_migrations()")
+        if "schema.sql" not in seed_text:
+            fail(f"{prefix}: seed.php must load schema.sql before migrations")
+        else:
+            ok(f"{prefix}: seed.php loads schema.sql")
+
+    mig_dir = product_path / "migrations"
+    sql_files = sorted(mig_dir.glob("*.sql")) if mig_dir.is_dir() else []
+    if len(sql_files) < 2:
+        fail(f"{prefix}: expected at least 2 migrations/*.sql files")
+    else:
+        ok(f"{prefix}: {len(sql_files)} migration file(s)")
+    for required, needle in (
+        ("001_add_public_id.sql", "public_id"),
+        ("002_add_published_at.sql", "published_at"),
+    ):
+        path = mig_dir / required
+        if not path.is_file():
+            fail(f"{prefix}: missing {required}")
+            continue
+        body = path.read_text(encoding="utf-8").lower()
+        if "alter table" not in body or needle not in body:
+            fail(f"{prefix}: {required} should ALTER TABLE documents ADD {needle}")
+        else:
+            ok(f"{prefix}: {required} alters documents.{needle}")
+
+    readme = product_path / "README.md"
+    if readme.is_file():
+        readme_text = readme.read_text(encoding="utf-8")
+        if "Schema migrations (implemented" not in readme_text:
+            fail(f"{prefix}: README should document migration implementation")
+        else:
+            ok(f"{prefix}: README documents migration approach")
+
+
 def validate_product(product_path: Path) -> None:
     name = product_path.name
     print(f"\n--- Product: {name} ---")
@@ -88,6 +145,8 @@ def validate_product(product_path: Path) -> None:
     check_exists(product_path / "CLAUDE.md", f"{name}: CLAUDE.md")
     check_exists(product_path / "_config" / "conventions.md", f"{name}: _config/conventions.md")
     validate_stages(product_path / "stages", f"{name}/")
+    if name == "folio-takehome":
+        validate_folio_migrations(product_path)
 
 
 def validate_hub() -> None:

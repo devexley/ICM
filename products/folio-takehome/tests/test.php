@@ -31,6 +31,20 @@ function assert_true($cond, string $msg = ''): void {
 
 echo "\nRunning tests:\n";
 
+test('feature columns exist via migrations and not in baseline schema.sql', function () {
+    $schema = file_get_contents(__DIR__ . '/../schema.sql');
+    assert_true(stripos($schema, 'public_id') === false, 'public_id must not be in schema.sql');
+    assert_true(stripos($schema, 'published_at') === false, 'published_at must not be in schema.sql');
+
+    $cols = db()->query('PRAGMA table_info(documents)')->fetchAll();
+    $names = array_column($cols, 'name');
+    assert_true(in_array('public_id', $names, true), 'public_id column missing after migrations');
+    assert_true(in_array('published_at', $names, true), 'published_at column missing after migrations');
+
+    $m = db()->query('SELECT COUNT(*) AS n FROM schema_migrations')->fetch();
+    assert_true((int) $m['n'] >= 2, 'expected at least two applied migrations');
+});
+
 test('seeded share link resolves to the seeded document', function () {
     $stmt = db()->prepare('
         SELECT d.title

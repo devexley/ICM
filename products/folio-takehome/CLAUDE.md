@@ -28,7 +28,8 @@ Review each stage `output/` before continuing.
 
 | Path | Role |
 |------|------|
-| `schema.sql` | Baseline schema (do not edit for features — use migrations) |
+| `schema.sql` | Baseline only — feature columns via `migrations/*.sql` (see README § Schema migrations) |
+| `migrations/README.md` | Migration flow and policy |
 | `lib/bootstrap.php` | Helpers, audit_log pattern |
 | `tests/test.php` | Test pattern |
 | `stages/` | ICM stage contracts |
