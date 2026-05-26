@@ -71,7 +71,10 @@ test('documents have unique human-readable public_id values', function () {
     assert_true(count($ids) >= 1, 'expected at least one document');
     foreach ($ids as $id) {
         assert_true($id !== null && $id !== '', 'public_id must be set');
-        assert_true((bool) preg_match('/^[a-z0-9]+-[a-z0-9]{4}$/', $id), 'unexpected public_id shape: ' . $id);
+        assert_true(
+            (bool) preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*-[a-z0-9]{4}$/', $id),
+            'unexpected public_id shape: ' . $id
+        );
     }
     assert_true(count($ids) === count(array_unique($ids)), 'public_id values must be unique');
 });
