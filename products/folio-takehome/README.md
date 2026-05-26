@@ -6,6 +6,8 @@ A small document-sharing app. You'll be extending it with features that customer
 
 ## Setup
 
+**Branch:** Agent and customer work for this exercise lives on `customer-test`. Clone or check out that branch (not `main`) to run the implemented features and tests described below.
+
 Requires Docker (with Compose). That's it — PHP, SQLite, and everything else ship inside the container.
 
 ```
