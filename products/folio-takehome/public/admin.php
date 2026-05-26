@@ -28,12 +28,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$docs = db()->query('
-    SELECT d.*, s.name AS creator_name
-    FROM documents d
-    JOIN staff s ON s.id = d.created_by
-    ORDER BY d.created_at DESC
-')->fetchAll();
+$search = trim($_GET['q'] ?? '');
+if ($search !== '') {
+    audit_log('search', 'document', 0, ['query' => $search]);
+    $stmt = db()->prepare('
+        SELECT d.*, s.name AS creator_name
+        FROM documents d
+        JOIN staff s ON s.id = d.created_by
+        WHERE d.title LIKE ? ESCAPE \'\\\'
+        ORDER BY d.created_at DESC
+    ');
+    $stmt->execute([str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search) . '%']);
+    $docs = $stmt->fetchAll();
+} else {
+    $docs = db()->query('
+        SELECT d.*, s.name AS creator_name
+        FROM documents d
+        JOIN staff s ON s.id = d.created_by
+        ORDER BY d.created_at DESC
+    ')->fetchAll();
+}
 
 render_header('Admin', $staff);
 ?>
@@ -66,8 +80,18 @@ render_header('Admin', $staff);
 
 <section class="card">
     <h2 class="card-title">Documents</h2>
+    <form method="get" class="search-form">
+        <div class="form-field">
+            <label for="q">Search by title</label>
+            <input type="search" id="q" name="q" value="<?= h($search) ?>" placeholder="Start typing a title…">
+        </div>
+        <button type="submit" class="btn">Search</button>
+        <?php if ($search !== ''): ?>
+            <a href="/admin.php" class="btn-link">Clear</a>
+        <?php endif ?>
+    </form>
     <?php if (empty($docs)): ?>
-        <p class="empty">No documents yet.</p>
+        <p class="empty"><?= $search !== '' ? 'No documents match that title prefix.' : 'No documents yet.' ?></p>
     <?php else: ?>
         <table class="data">
             <thead>

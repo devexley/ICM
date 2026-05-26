@@ -69,12 +69,15 @@ def run_command(cmd: list[str], product: str | None, label: str) -> int:
         log_line(f"ABORT {label}: pre-validation failed")
         return pre
 
-    run_cwd = ROOT
-    if product and product not in ("hub", "(hub)"):
+    if label == "GIT":
+        run_cwd = ROOT
+    elif product and product not in ("hub", "(hub)"):
         run_cwd = ROOT / "products" / product
         if not run_cwd.is_dir():
             log_line(f"ABORT {label}: product path missing: {run_cwd}")
             return 1
+    else:
+        run_cwd = ROOT
 
     proc = subprocess.run(cmd, cwd=run_cwd)
     log_line(f"{label} exit={proc.returncode}")

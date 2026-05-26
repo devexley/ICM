@@ -16,8 +16,8 @@ Track decisions here during `02_design`; link from stage outputs.
 
 ## 3. Share by name
 
-- [ ] Search semantics (exact / prefix / fuzzy)
-- [ ] Justification in design output
+- [x] Search semantics: case-sensitive SQL `LIKE 'term%'` title prefix (fast, predictable for staff UI)
+- [x] Admin search form + audit_log on search
 
 ## Integration (future)
 

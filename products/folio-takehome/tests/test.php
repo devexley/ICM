@@ -44,6 +44,13 @@ test('seeded share link resolves to the seeded document', function () {
     assert_true($row['title'] === 'Welcome Packet', 'unexpected title: ' . var_export($row['title'], true));
 });
 
+test('title prefix search finds matching documents', function () {
+    $stmt = db()->prepare('SELECT COUNT(*) AS n FROM documents WHERE title LIKE ?');
+    $stmt->execute(['Welcome%']);
+    $row = $stmt->fetch();
+    assert_true((int) $row['n'] >= 1, 'expected Welcome Packet to match prefix search');
+});
+
 test('documents have unique human-readable public_id values', function () {
     $stmt = db()->query('SELECT public_id FROM documents');
     $ids = array_column($stmt->fetchAll(), 'public_id');
