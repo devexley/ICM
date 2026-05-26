@@ -1,0 +1,43 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ICM Layer 4 — stage outputs (hub + all products)
+stages/*/output/*
+!stages/*/output/.gitkeep
+products/*/stages/*/output/*
+!products/*/stages/*/output/.gitkeep
+integration/output/*
+!integration/output/.gitkeep
+
+# Folio / PHP runtime artifacts
+products/folio-takehome/db.sqlite
+products/folio-takehome/*.sqlite
+
+# Secrets & local env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node / front-end (if added to products)
+node_modules/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# Logs & temp
+*.log
+.tmp/
+tmp/
