@@ -17,7 +17,7 @@ $pdo->exec("
         ('freddy@folio.example', 'Freddy Folio')
 ");
 
-$publishedNow = now_app()->format('Y-m-d H:i:s');
+$publishedNow = now_utc()->format('Y-m-d H:i:s');
 $stmt = $pdo->prepare('
     INSERT INTO documents (title, body, created_by, published_at)
     VALUES (?, ?, 1, ?)

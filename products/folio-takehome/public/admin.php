@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'public_id' => $publicId,
             'published_at' => $publishedAt,
         ]);
-        if (parse_published_at($publishedAt) > now_app()) {
+        if (parse_published_at($publishedAt) > now_utc()) {
             audit_log('schedule', 'document', $docId, ['published_at' => $publishedAt]);
         }
 
@@ -120,6 +120,7 @@ render_header('Admin', $staff);
                     <th>Title</th>
                     <th>Creator</th>
                     <th>Created</th>
+                    <th>Publish at</th>
                     <th></th>
                 </tr>
             </thead>
@@ -130,6 +131,9 @@ render_header('Admin', $staff);
                         <td><?= h($d['title']) ?></td>
                         <td><?= h($d['creator_name']) ?></td>
                         <td><?= h($d['created_at']) ?></td>
+                        <td><?= $d['published_at'] !== null && $d['published_at'] !== ''
+                            ? h(format_published_at_for_ui($d['published_at']))
+                            : '—' ?></td>
                         <td><a href="/share.php?doc=<?= (int) $d['id'] ?>" class="btn-link">Create share →</a></td>
                     </tr>
                 <?php endforeach ?>

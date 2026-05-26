@@ -30,6 +30,6 @@ Applied files are recorded in `schema_migrations` (`version` = filename). Each `
 These columns are **only** added via migrations:
 
 - `documents.public_id`
-- `documents.published_at`
+- `documents.published_at` (UTC `Y-m-d H:i:s`; staff UI uses US Central)
 
 Verify with: `python3 ../../scripts/validate_icm.py` (folio migration checks) or `tests/test.php` (runtime column check).

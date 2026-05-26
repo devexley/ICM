@@ -58,9 +58,17 @@ test('seeded share link resolves to the seeded document', function () {
     assert_true($row['title'] === 'Welcome Packet', 'unexpected title: ' . var_export($row['title'], true));
 });
 
+test('normalize_publish_at stores UTC from Central datetime-local input', function () {
+    $central = new DateTimeImmutable('2026-06-15 14:30:00', app_timezone());
+    $input = $central->format('Y-m-d\TH:i');
+    $stored = normalize_publish_at($input);
+    $expected = $central->setTimezone(utc_timezone())->format('Y-m-d H:i:s');
+    assert_true($stored === $expected, "expected UTC {$expected}, got {$stored}");
+});
+
 test('document is hidden before published_at', function () {
     $publicId = generate_public_id('Scheduled Future');
-    $future = now_app()->modify('+1 day')->format('Y-m-d H:i:s');
+    $future = now_utc()->modify('+1 day')->format('Y-m-d H:i:s');
     $stmt = db()->prepare('
         INSERT INTO documents (title, body, created_by, public_id, published_at)
         VALUES (?, ?, 1, ?, ?)
@@ -73,9 +81,9 @@ test('document is hidden before published_at', function () {
     assert_true(!document_is_visible($doc), 'future published_at should not be visible');
 });
 
-test('document becomes visible once published_at passes in app timezone', function () {
+test('document becomes visible once published_at passes (UTC in DB)', function () {
     $publicId = generate_public_id('Scheduled Past');
-    $past = now_app()->modify('-1 minute')->format('Y-m-d H:i:s');
+    $past = now_utc()->modify('-1 minute')->format('Y-m-d H:i:s');
     $stmt = db()->prepare('
         INSERT INTO documents (title, body, created_by, public_id, published_at)
         VALUES (?, ?, 1, ?, ?)

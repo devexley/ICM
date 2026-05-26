@@ -13,6 +13,17 @@ function now_app(): DateTimeImmutable
     return new DateTimeImmutable('now', app_timezone());
 }
 
+function utc_timezone(): DateTimeZone
+{
+    return new DateTimeZone('UTC');
+}
+
+/** Current time in UTC (canonical instant for DB and visibility). */
+function now_utc(): DateTimeImmutable
+{
+    return new DateTimeImmutable('now', utc_timezone());
+}
+
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -86,9 +97,10 @@ function generate_public_id(string $title): string {
     throw new RuntimeException('Could not allocate unique public_id');
 }
 
+/** Parse published_at from DB (always stored as UTC, Y-m-d H:i:s). */
 function parse_published_at(string $publishedAt): DateTimeImmutable
 {
-    $tz = app_timezone();
+    $tz = utc_timezone();
     $dt = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $publishedAt, $tz);
     if ($dt !== false) {
         return $dt;
@@ -96,19 +108,34 @@ function parse_published_at(string $publishedAt): DateTimeImmutable
     return new DateTimeImmutable($publishedAt, $tz);
 }
 
+/** Format a DB UTC timestamp for staff-facing UI (US Central). */
+function format_published_at_for_ui(?string $publishedAt): string
+{
+    if ($publishedAt === null || $publishedAt === '') {
+        return '';
+    }
+    return parse_published_at($publishedAt)
+        ->setTimezone(app_timezone())
+        ->format('Y-m-d H:i T');
+}
+
 function document_is_visible(array $doc): bool
 {
     if (empty($doc['published_at'])) {
         return true;
     }
-    return parse_published_at($doc['published_at']) <= now_app();
+    return parse_published_at($doc['published_at']) <= now_utc();
 }
 
+/**
+ * Normalize admin publish_at input to UTC for storage.
+ * Empty input → publish immediately (now in UTC).
+ */
 function normalize_publish_at(string $raw): string
 {
     $raw = trim($raw);
     if ($raw === '') {
-        return now_app()->format('Y-m-d H:i:s');
+        return now_utc()->format('Y-m-d H:i:s');
     }
 
     $tz = app_timezone();
@@ -120,7 +147,7 @@ function normalize_publish_at(string $raw): string
         throw new InvalidArgumentException('Invalid publish date/time');
     }
 
-    return $dt->format('Y-m-d H:i:s');
+    return $dt->setTimezone(utc_timezone())->format('Y-m-d H:i:s');
 }
 
 function assign_public_id(int $documentId, string $title): string {
