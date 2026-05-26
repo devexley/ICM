@@ -34,4 +34,4 @@ Add rows to hub `CONTEXT.md` when onboarding new products.
 ## References
 
 - Paper: [Interpretable Context Methodology](https://arxiv.org/abs/2603.16021)
-- Protocol: https://github.com/RinDig/Interpretable-Context-Methodology-ICM-
+- Protocol (reference workspaces): https://github.com/RinDig/Interpreted-Context-Methdology
