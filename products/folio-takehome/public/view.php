@@ -33,7 +33,7 @@ if (!document_is_visible($doc)) {
     ?>
     <div class="centered-message">
         <h1>Not yet available</h1>
-        <p>This document is scheduled for a later time. Please check back after it is published.</p>
+        <p>This document is scheduled for a later time (US Central). Please check back after it is published.</p>
     </div>
     <?php
     render_footer();

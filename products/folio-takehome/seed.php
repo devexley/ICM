@@ -17,13 +17,15 @@ $pdo->exec("
         ('freddy@folio.example', 'Freddy Folio')
 ");
 
+$publishedNow = now_app()->format('Y-m-d H:i:s');
 $stmt = $pdo->prepare('
     INSERT INTO documents (title, body, created_by, published_at)
-    VALUES (?, ?, 1, datetime(\'now\'))
+    VALUES (?, ?, 1, ?)
 ');
 $stmt->execute([
     'Welcome Packet',
     "Welcome to Folio!\n\nThis is the body of your welcome packet.",
+    $publishedNow,
 ]);
 $docId = (int) $pdo->lastInsertId();
 $publicId = assign_public_id($docId, 'Welcome Packet');

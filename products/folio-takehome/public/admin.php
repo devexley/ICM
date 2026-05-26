@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'public_id' => $publicId,
             'published_at' => $publishedAt,
         ]);
-        if (strtotime($publishedAt) > time()) {
+        if (parse_published_at($publishedAt) > now_app()) {
             audit_log('schedule', 'document', $docId, ['published_at' => $publishedAt]);
         }
 
@@ -90,9 +90,9 @@ render_header('Admin', $staff);
             <textarea id="body" name="body" required></textarea>
         </div>
         <div class="form-field">
-            <label for="publish_at">Publish at (optional)</label>
+            <label for="publish_at">Publish at (optional, Central Time)</label>
             <input type="datetime-local" id="publish_at" name="publish_at">
-            <p class="field-hint">Leave blank to publish immediately. Future times stay hidden from recipients until then.</p>
+            <p class="field-hint">Times are interpreted as US Central (America/Chicago). Leave blank to publish immediately.</p>
         </div>
         <button type="submit" class="btn">Create document</button>
     </form>

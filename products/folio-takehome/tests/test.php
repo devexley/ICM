@@ -60,16 +60,31 @@ test('seeded share link resolves to the seeded document', function () {
 
 test('document is hidden before published_at', function () {
     $publicId = generate_public_id('Scheduled Future');
+    $future = now_app()->modify('+1 day')->format('Y-m-d H:i:s');
     $stmt = db()->prepare('
         INSERT INTO documents (title, body, created_by, public_id, published_at)
-        VALUES (?, ?, 1, ?, datetime(\'now\', \'+1 day\'))
+        VALUES (?, ?, 1, ?, ?)
     ');
-    $stmt->execute(['Scheduled Future', 'Body', $publicId]);
+    $stmt->execute(['Scheduled Future', 'Body', $publicId, $future]);
     $fetch = db()->prepare('SELECT * FROM documents WHERE public_id = ?');
     $fetch->execute([$publicId]);
     $doc = $fetch->fetch();
     assert_true($doc !== false, 'expected inserted document');
     assert_true(!document_is_visible($doc), 'future published_at should not be visible');
+});
+
+test('document becomes visible once published_at passes in app timezone', function () {
+    $publicId = generate_public_id('Scheduled Past');
+    $past = now_app()->modify('-1 minute')->format('Y-m-d H:i:s');
+    $stmt = db()->prepare('
+        INSERT INTO documents (title, body, created_by, public_id, published_at)
+        VALUES (?, ?, 1, ?, ?)
+    ');
+    $stmt->execute(['Scheduled Past', 'Body', $publicId, $past]);
+    $fetch = db()->prepare('SELECT * FROM documents WHERE public_id = ?');
+    $fetch->execute([$publicId]);
+    $doc = $fetch->fetch();
+    assert_true(document_is_visible($doc), 'past published_at should be visible');
 });
 
 test('title prefix search finds matching documents', function () {

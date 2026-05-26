@@ -2,6 +2,17 @@
 
 date_default_timezone_set('America/Chicago');
 
+function app_timezone(): DateTimeZone
+{
+    return new DateTimeZone('America/Chicago');
+}
+
+/** Current time in application timezone (America/Chicago). */
+function now_app(): DateTimeImmutable
+{
+    return new DateTimeImmutable('now', app_timezone());
+}
+
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -75,25 +86,41 @@ function generate_public_id(string $title): string {
     throw new RuntimeException('Could not allocate unique public_id');
 }
 
-function document_is_visible(array $doc): bool {
+function parse_published_at(string $publishedAt): DateTimeImmutable
+{
+    $tz = app_timezone();
+    $dt = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $publishedAt, $tz);
+    if ($dt !== false) {
+        return $dt;
+    }
+    return new DateTimeImmutable($publishedAt, $tz);
+}
+
+function document_is_visible(array $doc): bool
+{
     if (empty($doc['published_at'])) {
         return true;
     }
-    $stmt = db()->prepare("SELECT datetime(?) <= datetime('now')");
-    $stmt->execute([$doc['published_at']]);
-    return (bool) $stmt->fetchColumn();
+    return parse_published_at($doc['published_at']) <= now_app();
 }
 
-function normalize_publish_at(string $raw): string {
+function normalize_publish_at(string $raw): string
+{
     $raw = trim($raw);
     if ($raw === '') {
-        return (new DateTime())->format('Y-m-d H:i:s');
+        return now_app()->format('Y-m-d H:i:s');
     }
-    $ts = strtotime($raw);
-    if ($ts === false) {
+
+    $tz = app_timezone();
+    $dt = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $raw, $tz);
+    if ($dt === false) {
+        $dt = DateTimeImmutable::createFromFormat('Y-m-d\TH:i:s', $raw, $tz);
+    }
+    if ($dt === false) {
         throw new InvalidArgumentException('Invalid publish date/time');
     }
-    return date('Y-m-d H:i:s', $ts);
+
+    return $dt->format('Y-m-d H:i:s');
 }
 
 function assign_public_id(int $documentId, string $title): string {
