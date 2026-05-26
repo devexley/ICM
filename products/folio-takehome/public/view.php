@@ -49,6 +49,7 @@ render_header($doc['title']);
 
 <h1 class="page-title"><?= h($doc['title']) ?></h1>
 <p class="meta">Shared with <?= h($doc['recipient_email']) ?></p>
+<div class="customer-agent-banner">Customer agent running from customer-test branch</div>
 
 <pre class="doc-body"><?= h($doc['body']) ?></pre>
 
